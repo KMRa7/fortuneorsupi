@@ -280,6 +280,32 @@
       background: rgba(232,201,106,0.08);
     }
 
+    .detail-button {
+      display: block;
+      width: 100%;
+      border: 2px solid var(--rose);
+      border-radius: 999px;
+      background: rgba(201,122,176,0.1);
+      color: var(--rose);
+      padding: 15px 16px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 16px;
+      text-align: center;
+      text-decoration: none;
+      letter-spacing: 0.06em;
+      font-family: 'Shippori Mincho', serif;
+      box-sizing: border-box;
+      transition: all 0.2s;
+      box-shadow: 0 0 16px rgba(201,122,176,0.15);
+    }
+
+    .detail-button:hover {
+      background: rgba(201,122,176,0.22);
+      box-shadow: 0 0 28px rgba(201,122,176,0.3);
+    }
+
     /* Loading */
     .loading-screen {
       min-height: 360px;
@@ -525,6 +551,7 @@
         <div class="answer-list" id="answerList"></div>
       </div>
 
+      <a href="https://liff.line.me/2010325512-bcfJev7g" class="detail-button" id="detailButton">🔍 もっと深く診断する（10問版）</a>
       <button id="sendButton" class="submit-button" style="margin-top:16px;" type="button">LINEに送る 📩</button>
       <button class="reset-button" id="resetButton">もう一度診断する</button>
     </div>
@@ -553,7 +580,7 @@
     })();
 
 
-    const LIFF_ID = '2010325512-76Chlhbp'; // ← ご自身のLIFF IDに変更してください
+    const LIFF_ID = '2009756046-tz7CJ7UU'; // ← ご自身のLIFF IDに変更してください
     let latestMessage = '';
     let liffReady = false;
 
@@ -667,8 +694,7 @@ ___________________________________________
 
 よりあなたに合った方法を知るために
 もう少しだけ深く見てみませんか？
-
-https://liff.line.me/2010325512-bcfJev7g`,
+（→10問診断）`,
       },
       spiri: {
         icon: '🌙',
@@ -764,8 +790,7 @@ ___________________________________________
 
 よりあなたに合った方法を知るために
 もう少しだけ深く見てみませんか？
-
-https://liff.line.me/2010325512-bcfJev7g`,
+（→10問診断）`,
       },
       mixed: {
         icon: '✨',
@@ -857,8 +882,7 @@ ___________________________________________
 
 よりあなたに合った方法を知るために
 もう少しだけ深く見てみませんか？
-
-https://liff.line.me/2010325512-bcfJev7g`,
+（→10問診断）`,
       }
     };
 
