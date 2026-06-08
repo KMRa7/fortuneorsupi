@@ -517,9 +517,12 @@
         <div class="answer-list" id="answerList"></div>
       </div>
 
+      <button id="sendButton" class="submit-button" style="margin-top:16px;" type="button">LINEに送る 📩</button>
       <button class="reset-button" id="resetButton">もう一度診断する</button>
     </div>
   </div>
+
+  <script src="https://static.line-scdn.net/liff/edge/2.1/sdk.js"></script>
 
   <script>
     // Stars
@@ -540,6 +543,40 @@
         field.appendChild(d);
       }
     })();
+
+
+    const LIFF_ID = '2010325512-76Chlhbp'; // ← ご自身のLIFF IDに変更してください
+    let latestMessage = '';
+    let liffReady = false;
+
+    async function initLiff() {
+      if (typeof liff === 'undefined') return false;
+      try {
+        await liff.init({ liffId: LIFF_ID, withLoginOnExternalBrowser: true });
+        liffReady = true;
+        return true;
+      } catch (e) {
+        liffReady = false;
+        console.error('LIFF初期化失敗', e);
+        return false;
+      }
+    }
+
+    async function sendToLine() {
+      if (!latestMessage) { alert('先に診断してください。'); return; }
+      const ok = liffReady || await initLiff();
+      if (!ok) { alert('LIFFの初期化に失敗しました。LIFF IDまたはエンドポイントURL設定を確認してください。'); return; }
+      try {
+        if (!liff.isLoggedIn()) { liff.login(); return; }
+        if (!liff.isInClient()) { alert('LINEアプリ内で開くと送信できます。'); return; }
+        await liff.sendMessages([{ type: 'text', text: latestMessage }]);
+        alert('LINEに送信しました');
+        liff.closeWindow();
+      } catch (e) {
+        console.error('送信失敗', e);
+        alert('LINE送信に失敗しました。LIFF設定をご確認ください。');
+      }
+    }
 
     const questions = [
       { text: '直感で決めることが多い', yesType: 'spiri', noType: 'uranai' },
@@ -698,6 +735,17 @@
           </div>`;
         }).join('');
 
+
+        // Build LINE message
+        const answerText = questions.map((q, i) => {
+          const ans = answers[i];
+          const t = ans === 'yes' ? q.yesType : q.noType;
+          const icon = t === 'spiri' ? '🌙' : '⭐';
+          return `Q${i+1}. ${q.text}\n→ ${ans === 'yes' ? 'YES' : 'NO'} ${icon}`;
+        }).join('\n\n');
+        const plainDesc = r.description.replace(/<[^>]+>/g, '');
+        latestMessage = `≪占いタイプ？スピリチュアルタイプ？≫\n\n【あなたの回答】\n${answerText}\n\n【スコア】\n占いタイプ：${uranai}点\nスピリタイプ：${spiri}点\n\n【判定結果】\n${r.name}\n\n${plainDesc}`;
+
         showScreen('resultScreen');
 
         // Animate bars
@@ -715,10 +763,14 @@
       syncStyles();
       document.getElementById('uranaiBar').style.width = '0%';
       document.getElementById('spiriBar').style.width = '0%';
+      latestMessage = '';
       showScreen('questionScreen');
     });
 
+    document.getElementById('sendButton').addEventListener('click', sendToLine);
+
     renderQuestions();
+    window.addEventListener('load', initLiff);
   </script>
 </body>
 </html>
