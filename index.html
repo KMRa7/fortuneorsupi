@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>占いタイプ？スピリチュアルタイプ？</title>
+  <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;600;800&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --mystic: #1a1035;
+      --deep: #2d1b5e;
+      --mid: #4a2d8f;
+      --gold: #e8c96a;
+      --gold-light: #f5e4a3;
+      --rose: #c97ab0;
+      --teal: #7ec8c8;
+      --star: #fff9e6;
+      --text: #f0e8ff;
+      --text-muted: #b8a8d8;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Noto Sans JP', sans-serif;
+      background: var(--mystic);
+      min-height: 100vh;
+      color: var(--text);
+      padding: 20px 12px 48px;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Star background */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse at 20% 20%, rgba(74,45,143,0.5) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 80%, rgba(201,122,176,0.2) 0%, transparent 50%),
+        radial-gradient(ellipse at 50% 50%, rgba(126,200,200,0.08) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .stars {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .star-dot {
+      position: absolute;
+      border-radius: 50%;
+      background: white;
+      animation: twinkle var(--d, 3s) ease-in-out infinite var(--delay, 0s);
+    }
+
+    @keyframes twinkle {
+      0%, 100% { opacity: var(--min, 0.1); transform: scale(1); }
+      50% { opacity: var(--max, 0.8); transform: scale(1.3); }
+    }
+
+    .container {
+      max-width: 540px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Header */
+    .header {
+      text-align: center;
+      padding: 32px 16px 28px;
+    }
+
+    .header-symbol {
+      font-size: 36px;
+      margin-bottom: 10px;
+      display: block;
+      animation: float 4s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+
+    .header h1 {
+      font-family: 'Shippori Mincho', serif;
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--gold);
+      letter-spacing: 0.08em;
+      line-height: 1.5;
+      text-shadow: 0 0 24px rgba(232,201,106,0.4);
+    }
+
+    .header-sub {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 8px;
+      letter-spacing: 0.12em;
+    }
+
+    /* Cards */
+    .card {
+      background: rgba(45,27,94,0.55);
+      border: 1px solid rgba(232,201,106,0.18);
+      border-radius: 20px;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.06);
+    }
+
+    /* Screen transitions */
+    .screen { display: none; }
+    .screen.active { display: block; }
+
+    /* Intro */
+    .intro-card {
+      padding: 20px 18px;
+      margin-bottom: 20px;
+      line-height: 1.9;
+      font-size: 14px;
+      color: var(--text-muted);
+      text-align: center;
+    }
+
+    .intro-card strong {
+      color: var(--gold-light);
+      font-weight: 700;
+    }
+
+    /* Section label */
+    .section-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 16px;
+      padding: 12px 16px;
+      background: linear-gradient(135deg, rgba(74,45,143,0.8), rgba(45,27,94,0.6));
+      border: 1px solid rgba(232,201,106,0.25);
+      border-radius: 12px;
+      font-family: 'Shippori Mincho', serif;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--gold);
+      letter-spacing: 0.06em;
+    }
+
+    /* Questions */
+    .question-list {
+      display: grid;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .question-item {
+      padding: 16px 14px;
+    }
+
+    .question-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .question-number {
+      flex-shrink: 0;
+      width: 28px;
+      height: 28px;
+      background: linear-gradient(135deg, var(--gold), #c9a840);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--mystic);
+      margin-top: 1px;
+    }
+
+    .question-text {
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 1.7;
+      color: var(--text);
+    }
+
+    .answer-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .answer-option {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 46px;
+      padding: 10px 12px;
+      border: 1px solid rgba(184,168,216,0.25);
+      border-radius: 999px;
+      background: rgba(255,255,255,0.04);
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      letter-spacing: 0.04em;
+    }
+
+    .answer-option input { display: none; }
+
+    .answer-option:hover {
+      border-color: rgba(232,201,106,0.4);
+      background: rgba(232,201,106,0.06);
+      color: var(--gold-light);
+    }
+
+    .answer-option.selected {
+      border-color: var(--gold);
+      background: rgba(232,201,106,0.14);
+      color: var(--gold);
+      font-weight: 700;
+      box-shadow: 0 0 12px rgba(232,201,106,0.15);
+    }
+
+    /* Buttons */
+    .submit-button {
+      width: 100%;
+      border: none;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #c9a840, #e8c96a, #c9a840);
+      color: var(--mystic);
+      padding: 16px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: 'Shippori Mincho', serif;
+      letter-spacing: 0.08em;
+      box-shadow: 0 4px 20px rgba(232,201,106,0.3);
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+
+    .submit-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 28px rgba(232,201,106,0.45);
+    }
+
+    .reset-button {
+      width: 100%;
+      border: 1px solid rgba(232,201,106,0.35);
+      border-radius: 999px;
+      background: transparent;
+      color: var(--gold);
+      padding: 14px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 12px;
+      transition: all 0.2s;
+      letter-spacing: 0.06em;
+    }
+
+    .reset-button:hover {
+      background: rgba(232,201,106,0.08);
+    }
+
+    /* Loading */
+    .loading-screen {
+      min-height: 360px;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+    }
+
+    .loading-screen.active { display: flex; }
+
+    .crystal-ball {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, rgba(255,255,255,0.4), rgba(126,200,200,0.3) 30%, rgba(74,45,143,0.6) 70%, rgba(26,16,53,0.8));
+      border: 2px solid rgba(232,201,106,0.3);
+      box-shadow: 0 0 40px rgba(126,200,200,0.3), inset 0 0 20px rgba(255,255,255,0.05);
+      animation: pulse-glow 1.5s ease-in-out infinite;
+      margin-bottom: 20px;
+    }
+
+    @keyframes pulse-glow {
+      0%, 100% { box-shadow: 0 0 30px rgba(126,200,200,0.2), inset 0 0 20px rgba(255,255,255,0.05); transform: scale(1); }
+      50% { box-shadow: 0 0 60px rgba(126,200,200,0.5), 0 0 100px rgba(201,122,176,0.2), inset 0 0 30px rgba(255,255,255,0.1); transform: scale(1.05); }
+    }
+
+    .loading-text {
+      font-family: 'Shippori Mincho', serif;
+      font-size: 15px;
+      color: var(--gold);
+      letter-spacing: 0.2em;
+      animation: fade-text 1.5s ease-in-out infinite;
+    }
+
+    @keyframes fade-text {
+      0%, 100% { opacity: 0.6; }
+      50% { opacity: 1; }
+    }
+
+    /* Result */
+    .result-type-badge {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 24px 20px 20px;
+      text-align: center;
+    }
+
+    .type-icon {
+      font-size: 48px;
+      display: block;
+      margin-bottom: 6px;
+      animation: float 3s ease-in-out infinite;
+    }
+
+    .type-label {
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .type-name {
+      font-family: 'Shippori Mincho', serif;
+      font-size: 28px;
+      font-weight: 800;
+      line-height: 1.3;
+      margin-bottom: 4px;
+    }
+
+    .type-name.uranai { color: var(--teal); text-shadow: 0 0 20px rgba(126,200,200,0.4); }
+    .type-name.spiri { color: var(--rose); text-shadow: 0 0 20px rgba(201,122,176,0.4); }
+    .type-name.mixed { color: var(--gold); text-shadow: 0 0 20px rgba(232,201,106,0.4); }
+
+    .score-bar-container {
+      padding: 0 20px 20px;
+    }
+
+    .score-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .score-label {
+      width: 100px;
+      font-size: 12px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .score-label.uranai { color: var(--teal); }
+    .score-label.spiri { color: var(--rose); }
+
+    .score-track {
+      flex: 1;
+      height: 8px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .score-fill {
+      height: 100%;
+      border-radius: 999px;
+      transition: width 1s cubic-bezier(0.34,1.56,0.64,1);
+    }
+
+    .score-fill.uranai { background: linear-gradient(90deg, #5ab0b0, var(--teal)); }
+    .score-fill.spiri { background: linear-gradient(90deg, #b060a0, var(--rose)); }
+
+    .score-num {
+      width: 24px;
+      text-align: right;
+      font-size: 13px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .score-num.uranai { color: var(--teal); }
+    .score-num.spiri { color: var(--rose); }
+
+    .result-description-card {
+      margin: 0 0 16px;
+      padding: 18px 16px;
+    }
+
+    .result-description {
+      font-size: 14px;
+      line-height: 2;
+      color: var(--text-muted);
+      white-space: pre-line;
+    }
+
+    .result-description strong {
+      color: var(--gold-light);
+      font-weight: 700;
+    }
+
+    .answers-summary {
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+
+    .answers-title {
+      font-family: 'Shippori Mincho', serif;
+      font-size: 13px;
+      color: var(--gold);
+      letter-spacing: 0.1em;
+      margin-bottom: 12px;
+    }
+
+    .answer-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .answer-summary-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      font-size: 12px;
+      line-height: 1.6;
+      color: var(--text-muted);
+    }
+
+    .answer-q { color: var(--text-muted); flex-shrink: 0; }
+    .answer-a { color: var(--text); font-weight: 600; }
+
+    @media (max-width: 480px) {
+      .header h1 { font-size: 19px; }
+      .answer-group { grid-template-columns: 1fr; }
+      .type-name { font-size: 24px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Stars -->
+  <div class="stars" id="starField"></div>
+
+  <div class="container">
+    <div class="header">
+      <span class="header-symbol">🔮</span>
+      <h1>占いタイプ？<br>スピリチュアルタイプ？</h1>
+      <p class="header-sub">— あなたの感性を診断します —</p>
+    </div>
+
+    <!-- Question Screen -->
+    <div id="questionScreen" class="screen active">
+      <div class="card intro-card">
+        直感で答えてください。<br>
+        <strong>6つの質問</strong>であなたのタイプがわかります。
+      </div>
+
+      <div class="section-label">
+        <span>✦</span> 診断テスト
+      </div>
+
+      <div class="question-list" id="questionList"></div>
+
+      <button class="submit-button" id="diagnoseButton">結果を見る ✦</button>
+    </div>
+
+    <!-- Loading Screen -->
+    <div id="loadingScreen" class="screen loading-screen">
+      <div class="crystal-ball"></div>
+      <div class="loading-text">鑑定中…</div>
+    </div>
+
+    <!-- Result Screen -->
+    <div id="resultScreen" class="screen">
+      <div class="card result-type-badge" id="resultBadge">
+        <div>
+          <span class="type-icon" id="resultIcon"></span>
+          <p class="type-label">あなたのタイプ</p>
+          <p class="type-name" id="resultTypeName"></p>
+        </div>
+      </div>
+
+      <div class="score-bar-container card" style="margin-bottom:16px;">
+        <div class="score-row">
+          <span class="score-label uranai">占いタイプ</span>
+          <div class="score-track"><div class="score-fill uranai" id="uranaiBar" style="width:0%"></div></div>
+          <span class="score-num uranai" id="uranaiNum">0</span>
+        </div>
+        <div class="score-row" style="margin-bottom:0">
+          <span class="score-label spiri">スピリタイプ</span>
+          <div class="score-track"><div class="score-fill spiri" id="spiriBar" style="width:0%"></div></div>
+          <span class="score-num spiri" id="spiriNum">0</span>
+        </div>
+      </div>
+
+      <div class="card result-description-card">
+        <div class="result-description" id="resultDescription"></div>
+      </div>
+
+      <div class="card answers-summary">
+        <p class="answers-title">✦ あなたの回答</p>
+        <div class="answer-list" id="answerList"></div>
+      </div>
+
+      <button class="reset-button" id="resetButton">もう一度診断する</button>
+    </div>
+  </div>
+
+  <script>
+    // Stars
+    (function() {
+      const field = document.getElementById('starField');
+      for (let i = 0; i < 80; i++) {
+        const d = document.createElement('div');
+        const size = Math.random() * 2.5 + 0.5;
+        d.className = 'star-dot';
+        d.style.cssText = `
+          width:${size}px; height:${size}px;
+          left:${Math.random()*100}%; top:${Math.random()*100}%;
+          --d:${(Math.random()*3+2).toFixed(1)}s;
+          --delay:-${(Math.random()*4).toFixed(1)}s;
+          --min:${(Math.random()*0.15+0.05).toFixed(2)};
+          --max:${(Math.random()*0.6+0.3).toFixed(2)};
+        `;
+        field.appendChild(d);
+      }
+    })();
+
+    const questions = [
+      { text: '直感で決めることが多い', yesType: 'spiri', noType: 'uranai' },
+      { text: '目に見えないものを自然に信じられる', yesType: 'spiri', noType: 'uranai' },
+      { text: '何かを学ぶとき、理論や仕組みを知りたい', yesType: 'uranai', noType: 'spiri' },
+      { text: '人の感情や空気を敏感に感じやすい', yesType: 'spiri', noType: 'uranai' },
+      { text: '答えがあると安心する', yesType: 'uranai', noType: 'spiri' },
+      { text: '説明できないけど「なんとなく分かる」ことがある', yesType: 'spiri', noType: 'uranai' },
+    ];
+
+    const results = {
+      uranai: {
+        icon: '⭐',
+        name: '占いタイプ',
+        className: 'uranai',
+        description: `あなたは<strong>「占いタイプ」</strong>です。
+
+論理や根拠を大切にし、
+答えや指針があると安心できるタイプ。
+
+占い・数秘術・タロットなど
+「体系」や「法則性」のある世界と
+相性がよい傾向があります。
+
+知識を積み重ねながら
+自分自身を深く理解していくことが、
+あなたの成長につながります。`,
+      },
+      spiri: {
+        icon: '🌙',
+        name: 'スピリチュアルタイプ',
+        className: 'spiri',
+        description: `あなたは<strong>「スピリチュアルタイプ」</strong>です。
+
+感覚や直感を大切にし、
+目に見えないエネルギーや流れを
+自然に感じ取れるタイプ。
+
+ヒーリング・瞑想・オーラなど
+「感じる」ことを重視した世界と
+相性がよい傾向があります。
+
+その豊かな感性を信じて
+自分の内側の声に耳を傾けることが、
+あなたの力になります。`,
+      },
+      mixed: {
+        icon: '✨',
+        name: 'バランスタイプ',
+        className: 'mixed',
+        description: `あなたは<strong>「バランスタイプ」</strong>です。
+
+論理と直感、どちらもバランスよく
+持ち合わせている柔軟なタイプ。
+
+占いもスピリチュアルも
+どちらの世界も楽しめる、
+実はとても希少なタイプです。
+
+状況によって使い分けながら、
+自分だけの探求スタイルを
+見つけていけるでしょう。`,
+      }
+    };
+
+    const questionList = document.getElementById('questionList');
+
+    function renderQuestions() {
+      questionList.innerHTML = questions.map((q, i) => `
+        <div class="question-item card">
+          <div class="question-header">
+            <div class="question-number">${i + 1}</div>
+            <p class="question-text">${q.text}</p>
+          </div>
+          <div class="answer-group">
+            <label class="answer-option">
+              <input type="radio" name="q${i}" value="yes" />
+              <span>YES</span>
+            </label>
+            <label class="answer-option">
+              <input type="radio" name="q${i}" value="no" />
+              <span>NO</span>
+            </label>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function syncStyles() {
+      document.querySelectorAll('.answer-option').forEach(label => {
+        label.classList.toggle('selected', label.querySelector('input').checked);
+      });
+    }
+
+    document.addEventListener('change', e => {
+      if (e.target.matches('input[type="radio"]')) syncStyles();
+    });
+
+    function showScreen(id) {
+      ['questionScreen','loadingScreen','resultScreen'].forEach(s => {
+        document.getElementById(s).classList.remove('active');
+      });
+      document.getElementById(id).classList.add('active');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    document.getElementById('diagnoseButton').addEventListener('click', () => {
+      const answers = questions.map((_, i) => {
+        const sel = document.querySelector(`input[name="q${i}"]:checked`);
+        return sel ? sel.value : null;
+      });
+
+      if (answers.includes(null)) {
+        alert('すべての質問に回答してください。');
+        return;
+      }
+
+      showScreen('loadingScreen');
+
+      setTimeout(() => {
+        let uranai = 0, spiri = 0;
+        answers.forEach((ans, i) => {
+          const q = questions[i];
+          if (ans === 'yes') spiri += q.yesType === 'spiri' ? 1 : 0, uranai += q.yesType === 'uranai' ? 1 : 0;
+          else spiri += q.noType === 'spiri' ? 1 : 0, uranai += q.noType === 'uranai' ? 1 : 0;
+        });
+
+        const total = 6;
+        let type;
+        if (uranai === spiri) type = 'mixed';
+        else if (uranai > spiri) type = 'uranai';
+        else type = 'spiri';
+
+        const r = results[type];
+        document.getElementById('resultIcon').textContent = r.icon;
+        document.getElementById('resultTypeName').textContent = r.name;
+        document.getElementById('resultTypeName').className = `type-name ${r.className}`;
+
+        document.getElementById('resultDescription').innerHTML = r.description.replace(/\n/g, '<br>').replace(/<strong>(.*?)<\/strong>/g, '<strong>$1</strong>');
+
+        // Animate bars after showing
+        document.getElementById('uranaiNum').textContent = uranai;
+        document.getElementById('spiriNum').textContent = spiri;
+
+        // Answers
+        document.getElementById('answerList').innerHTML = questions.map((q, i) => {
+          const ans = answers[i];
+          const type = ans === 'yes' ? q.yesType : q.noType;
+          const dot = type === 'spiri' ? '🌙' : '⭐';
+          return `<div class="answer-summary-item">
+            <span class="answer-q">Q${i+1}.</span>
+            <div>
+              <span>${q.text}</span><br>
+              <span class="answer-a">${dot} ${ans === 'yes' ? 'YES' : 'NO'}</span>
+            </div>
+          </div>`;
+        }).join('');
+
+        showScreen('resultScreen');
+
+        // Animate bars
+        requestAnimationFrame(() => {
+          setTimeout(() => {
+            document.getElementById('uranaiBar').style.width = `${(uranai / total) * 100}%`;
+            document.getElementById('spiriBar').style.width = `${(spiri / total) * 100}%`;
+          }, 200);
+        });
+      }, 1400);
+    });
+
+    document.getElementById('resetButton').addEventListener('click', () => {
+      document.querySelectorAll('input[type="radio"]').forEach(r => r.checked = false);
+      syncStyles();
+      document.getElementById('uranaiBar').style.width = '0%';
+      document.getElementById('spiriBar').style.width = '0%';
+      showScreen('questionScreen');
+    });
+
+    renderQuestions();
+  </script>
+</body>
+</html>
