@@ -306,6 +306,40 @@
       box-shadow: 0 0 28px rgba(201,122,176,0.3);
     }
 
+    .reveal-button {
+      width: 100%;
+      border: none;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #b060a0, var(--rose), #b060a0);
+      color: #fff;
+      padding: 16px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: 'Shippori Mincho', serif;
+      letter-spacing: 0.08em;
+      box-shadow: 0 4px 20px rgba(201,122,176,0.35);
+      transition: transform 0.15s, box-shadow 0.15s;
+      margin-top: 16px;
+    }
+
+    .reveal-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 28px rgba(201,122,176,0.5);
+    }
+
+    .result-intro-card {
+      padding: 20px 18px;
+      margin-bottom: 16px;
+      line-height: 2;
+      font-size: 14px;
+      color: var(--text-muted);
+      white-space: pre-line;
+    }
+
+    .result-detail { display: none; }
+    .result-detail.visible { display: block; }
+
     /* Loading */
     .loading-screen {
       min-height: 360px;
@@ -521,7 +555,7 @@
 
     <!-- Result Screen -->
     <div id="resultScreen" class="screen">
-      <div class="card result-type-badge" id="resultBadge">
+      <div class="card result-type-badge" id="resultBadge" style="display:none;">
         <div>
           <span class="type-icon" id="resultIcon"></span>
           <p class="type-label">あなたのタイプ</p>
@@ -529,7 +563,7 @@
         </div>
       </div>
 
-      <div class="score-bar-container card" style="margin-bottom:16px;">
+      <div class="score-bar-container card" style="display:none;">
         <div class="score-row">
           <span class="score-label uranai">占いタイプ</span>
           <div class="score-track"><div class="score-fill uranai" id="uranaiBar" style="width:0%"></div></div>
@@ -542,17 +576,24 @@
         </div>
       </div>
 
-      <div class="card result-description-card">
-        <div class="result-description" id="resultDescription"></div>
+      <div class="card result-intro-card" id="resultIntro"></div>
+
+      <button class="reveal-button" id="revealButton">診断結果はこちら 🔮</button>
+
+      <div class="result-detail" id="resultDetail">
+        <div class="card result-description-card" style="margin-top:16px;">
+          <div class="result-description" id="resultDescription"></div>
+        </div>
+
+        <div class="card answers-summary">
+          <p class="answers-title">✦ あなたの回答</p>
+          <div class="answer-list" id="answerList"></div>
+        </div>
+
+        <a href="https://liff.line.me/2010325512-bcfJev7g" class="detail-button" id="detailButton">🔍 もっと深く診断する（10問版）</a>
+        <button id="sendButton" class="submit-button" style="margin-top:16px;" type="button">LINEに送る 📩</button>
       </div>
 
-      <div class="card answers-summary">
-        <p class="answers-title">✦ あなたの回答</p>
-        <div class="answer-list" id="answerList"></div>
-      </div>
-
-      <a href="https://liff.line.me/2010325512-bcfJev7g" class="detail-button" id="detailButton">🔍 もっと深く診断する（10問版）</a>
-      <button id="sendButton" class="submit-button" style="margin-top:16px;" type="button">LINEに送る 📩</button>
       <button class="reset-button" id="resetButton">もう一度診断する</button>
     </div>
   </div>
@@ -622,26 +663,31 @@
       { text: '説明できないけど「なんとなく分かる」ことがある', yesType: 'spiri', noType: 'uranai' },
     ];
 
-    const results = {
-      uranai: {
-        icon: '⭐',
-        name: '占いタイプ',
-        className: 'uranai',
-        description: `診断にご参加いただき、ありがとうございます😊
+    const INTRO_TEXT = `診断にご参加いただき、ありがとうございます😊
 この診断では、
-どちらが良い・悪い
-ではなく、
+"どちらが良い・悪い"ではなく、
 あなたが自然に使っている
-「読み取る力のタイプ」
-を見ています。
+"読み取る力のタイプ"を見ています。
 
 同じ出来事でも、
 どこから見ているかで、
 受け取り方も、未来も変わっていきます。
 
-まずは、今回の診断結果をお伝えしますね。
-___________________________________________
-あなたは
+これから数日間に分けて、
+・あなたのタイプの特徴
+・うまくいく使い方
+・少しつまずきやすいポイント
+を、お届けしていきます🌿
+
+まずは、今回の診断結果をお伝えしますね。`;
+
+    const results = {
+      uranai: {
+        icon: '⭐',
+        name: '占いタイプ',
+        lineName: '占いタイプ',
+        className: 'uranai',
+        description: `あなたは
 <strong>【理解して納得する占いタイプ】</strong>です。
 
 ・自分のタイプ
@@ -661,64 +707,14 @@ ___________________________________________
 これからのメッセージでは、
 知る力をどう使えば
 現実がスムーズに動き出すのか
-少しずつお伝えしていきますね🌿
-___________________________________________
-前回のお話の続きです🌿
-なぜ、情報が増えるほど迷ってしまうのか。
-
-それは
-占いには、種類があるからです。
-
-占いは大きく分けて、
-・命（めい）→ 本質・性質
-・卜（ぼく）→ タイミング・選択
-・相（そう）→ 状態・現れ
-
-という3つに分かれています。
-
-たとえば、
-・自分の性質を知りたいのに「タイミング」を見ている
-・相性を知りたいのに「状態」だけ見ている
-
-こうなると、少しズレてしまうんですね。
-
-でも逆に言えば、
-どれを見るか、が分かるだけで
-一気にスッキリします。
-
-あなたの「知る力」は、
-正しく使うと、とても大きな武器になります🌿
-___________________________________________
-実はこのタイプ、
-もう少し細かく分かれます。
-
-よりあなたに合った方法を知るために
-もう少しだけ深く見てみませんか？
-（→10問診断）`,
+少しずつお伝えしていきますね🌿`,
       },
       spiri: {
         icon: '🌙',
         name: 'スピリチュアルタイプ',
+        lineName: 'スピリチュアルタイプ',
         className: 'spiri',
-        description: `診断にご参加いただき、ありがとうございます😊
-この診断では、
-"どちらが良い・悪い"ではなく、
-あなたが自然に使っている
-"読み取る力のタイプ"を見ています。
-
-同じ出来事でも、
-どこから見ているかで、
-受け取り方も、未来も変わっていきます。
-
-これから数日間に分けて、
-・あなたのタイプの特徴
-・うまくいく使い方
-・少しつまずきやすいポイント
-を、お届けしていきます🌿
-
-まずは、今回の診断結果をお伝えしますね。
-___________________________________________
-あなたは
+        description: `あなたは
 <strong>【感覚で受け取るスピリチュアルタイプ】</strong>です。
 
 ・なんとなく分かる
@@ -741,80 +737,14 @@ ___________________________________________
 これからのメッセージでは、
 その感覚を
 "安心して使える形に整える方法"
-をお届けしていきます🌿
-___________________________________________
-こんな感覚、ありませんか？🌿
-
-・人と会うと、なんとなく疲れる
-・言葉にできないけど、分かることがある
-・場の雰囲気に影響されやすい
-・でも、それが合っているか自信が持てない
-
-感じることはできるのに、
-それをどう扱えばいいか分からない。
-
-実はこれ、
-感覚がある人にしか起きないことなのです。
-
-次は、その理由を少しだけお話ししますね🌿
-___________________________________________
-前回のお話の続きです🌿
-なぜ、感じる人ほど不安になりやすいのか。
-
-それは
-受け取り方が、整っていないからなのです。
-
-たとえば、
-同じものを見ても
-・リラックスしているとき
-・緊張しているとき
-
-では、受け取り方が変わります。
-
-つまり、
-感覚の強さではなく
-受け取る状態、がとても大事
-なんですね。
-
-そしてその感覚は、
-・チャネリングのように直接受け取る方法
-・ダウジングのように道具を使う方法
-
-など、少しずつ形にしていくこともできます。
-
-あなたの感覚は、
-整えることで"安心して使える力"に変わっていきます🌿
-___________________________________________
-実はこのタイプ、
-もう少し細かく分かれます。
-
-よりあなたに合った方法を知るために
-もう少しだけ深く見てみませんか？
-（→10問診断）`,
+をお届けしていきます🌿`,
       },
       mixed: {
         icon: '✨',
         name: 'ハイブリッドタイプ',
+        lineName: 'ハイブリッドタイプ',
         className: 'mixed',
-        description: `診断にご参加いただき、ありがとうございます😊
-この診断では、
-どちらが良い・悪い ではなく、
-あなたが自然に使っている
-読み取る力のタイプ、を見ています。
-
-同じ出来事でも、
-どこから見ているかで、
-受け取り方も、未来も変わっていきます。
-
-これから数日間に分けて、
-・あなたのタイプの特徴
-・うまくいく使い方
-・少しつまずきやすいポイント
-を、お届けしていきます🌿
-
-まずは、今回の診断結果をお伝えしますね。
-___________________________________________
-あなたは
+        description: `あなたは
 <strong>【理解して納得する占いタイプ】</strong>と
 <strong>【感覚で受け取るスピリチュアルタイプ】</strong>
 両方の感覚を持つ<strong>【ハイブリッドタイプ】</strong>です。
@@ -854,35 +784,7 @@ ___________________________________________
 
 これからのメッセージでは、
 あなたの力をどう活かせばいいのかを
-お伝えしていきます🌿
-___________________________________________
-前回のお話の続きです🌿
-理論も分かるし、感覚もある。
-
-実はこのタイプの方は、
-「使い分けができる人」なのです。
-
-占いは
-外側（流れ・タイミング・構造）
-を読むもの
-
-スピリチュアルは
-内側（感覚・状態・受け取り方）
-を読むもの
-
-本来は、どちらも必要なんですね。
-
-そしてこの2つが合わさると、
-より深いリーディングができるようになります。
-
-あなたはその可能性を、すでに持っています🌿
-___________________________________________
-実はこのタイプ、
-もう少し細かく分かれます。
-
-よりあなたに合った方法を知るために
-もう少しだけ深く見てみませんか？
-（→10問診断）`,
+お伝えしていきます🌿`,
       }
     };
 
@@ -963,7 +865,17 @@ ___________________________________________
         document.getElementById('resultTypeName').textContent = r.name;
         document.getElementById('resultTypeName').className = `type-name ${r.className}`;
 
-        document.getElementById('resultDescription').innerHTML = r.description.replace(/\n/g, '<br>').replace(/<strong>(.*?)<\/strong>/g, '<strong>$1</strong>');
+        // Show common intro text
+        document.getElementById('resultIntro').textContent = INTRO_TEXT;
+
+        // Hide detail, reset reveal button
+        document.getElementById('resultDetail').classList.remove('visible');
+
+        // Store type name for LINE send on reveal
+        document.getElementById('revealButton').dataset.lineName = r.lineName;
+        document.getElementById('revealButton').dataset.type = type;
+
+        document.getElementById('resultDescription').innerHTML = r.description.replace(/\n/g, '<br>');
 
         // Animate bars after showing
         document.getElementById('uranaiNum').textContent = uranai;
@@ -984,25 +896,12 @@ ___________________________________________
         }).join('');
 
 
-        // Build LINE message
-        const answerText = questions.map((q, i) => {
-          const ans = answers[i];
-          const t = ans === 'yes' ? q.yesType : q.noType;
-          const icon = t === 'spiri' ? '🌙' : '⭐';
-          return `Q${i+1}. ${q.text}\n→ ${ans === 'yes' ? 'YES' : 'NO'} ${icon}`;
-        }).join('\n\n');
-        const plainDesc = r.description.replace(/<[^>]+>/g, '');
-        latestMessage = `≪占いタイプ？スピリチュアルタイプ？≫\n\n【あなたの回答】\n${answerText}\n\n【スコア】\n占いタイプ：${uranai}点\nスピリタイプ：${spiri}点\n\n【判定結果】\n${r.name}\n\n${plainDesc}`;
+        // LINE message = type name only (for auto-reply trigger)
+        latestMessage = r.lineName;
 
         showScreen('resultScreen');
 
-        // Animate bars
-        requestAnimationFrame(() => {
-          setTimeout(() => {
-            document.getElementById('uranaiBar').style.width = `${(uranai / total) * 100}%`;
-            document.getElementById('spiriBar').style.width = `${(spiri / total) * 100}%`;
-          }, 200);
-        });
+        // bars animated on reveal
       }, 1400);
     });
 
@@ -1013,8 +912,35 @@ ___________________________________________
       });
       document.getElementById('uranaiBar').style.width = '0%';
       document.getElementById('spiriBar').style.width = '0%';
+      document.getElementById('resultDetail').classList.remove('visible');
+      document.getElementById('revealButton').style.display = '';
       latestMessage = '';
       showScreen('questionScreen');
+    });
+
+    document.getElementById('revealButton').addEventListener('click', async () => {
+      // Show detail section
+      document.getElementById('resultDetail').classList.add('visible');
+      document.getElementById('revealButton').style.display = 'none';
+
+      // Animate bars
+      const uranai = parseInt(document.getElementById('uranaiNum').textContent);
+      const spiri  = parseInt(document.getElementById('spiriNum').textContent);
+      const total  = 6;
+      setTimeout(() => {
+        document.getElementById('uranaiBar').style.width = `${(uranai / total) * 100}%`;
+        document.getElementById('spiriBar').style.width  = `${(spiri  / total) * 100}%`;
+      }, 100);
+
+      // Send type name to LINE
+      if (!latestMessage) return;
+      const ok = liffReady || await initLiff();
+      if (!ok) return;
+      try {
+        if (liff.isInClient() && liff.isLoggedIn()) {
+          await liff.sendMessages([{ type: 'text', text: latestMessage }]);
+        }
+      } catch(e) { console.error('reveal send failed', e); }
     });
 
     document.getElementById('sendButton').addEventListener('click', sendToLine);
